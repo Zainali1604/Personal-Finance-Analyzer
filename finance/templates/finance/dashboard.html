@@ -1,0 +1,144 @@
+{% extends 'finance/base.html' %}
+
+{% block title %}Dashboard - Personal Finance Analyzer{% endblock %}
+{% block page_title %}Financial Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Budget Alert Warning Banner if Exceeded -->
+{% if budget_info.exceeded_count > 0 %}
+<div class="alert alert-danger shadow-sm d-flex align-items-center mb-4" role="alert">
+    <i class="fa-solid fa-triangle-exclamation fa-2x me-3"></i>
+    <div>
+        <h6 class="fw-bold mb-1">Budget Limit Warning!</h6>
+        <span>You have exceeded your monthly budget limits in <strong>{{ budget_info.exceeded_count }}</strong> category(s) for this month! Check the <a href="{% url 'finance:budget' %}" class="alert-link">Budget Plan</a> to review.</span>
+    </div>
+</div>
+{% endif %}
+
+<!-- Key Metrics Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-success-subtle text-success">
+                <i class="fa-solid fa-arrow-down"></i>
+            </div>
+            <div class="stat-title">Total Income</div>
+            <div class="stat-value text-success">${{ summary.total_income|floatformat:2 }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-danger-subtle text-danger">
+                <i class="fa-solid fa-arrow-up"></i>
+            </div>
+            <div class="stat-title">Total Expenses</div>
+            <div class="stat-value text-danger">${{ summary.total_expenses|floatformat:2 }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-primary-subtle text-primary">
+                <i class="fa-solid fa-wallet"></i>
+            </div>
+            <div class="stat-title">Current Balance</div>
+            <div class="stat-value {% if summary.current_balance < 0 %}text-danger{% else %}text-primary{% endif %}">
+                ${{ summary.current_balance|floatformat:2 }}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-info-subtle text-info">
+                <i class="fa-solid fa-piggy-bank"></i>
+            </div>
+            <div class="stat-title">Total Savings</div>
+            <div class="stat-value text-info">${{ summary.total_savings|floatformat:2 }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-white fw-bold border-0 pt-3">
+                <i class="fa-solid fa-chart-pie text-primary me-2"></i> Expenses by Category
+            </div>
+            <div class="card-body" style="position: relative; height:300px;">
+                <canvas id="dashboardExpenseChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-white fw-bold border-0 pt-3">
+                <i class="fa-solid fa-chart-column text-success me-2"></i> Monthly Income vs Expenses
+            </div>
+            <div class="card-body" style="position: relative; height:300px;">
+                <canvas id="dashboardMonthlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions Table -->
+<div class="custom-table-card">
+    <div class="p-3 bg-white fw-bold border-bottom d-flex justify-content-between align-items-center">
+        <span><i class="fa-solid fa-clock-rotate-left me-2 text-secondary"></i> Recent Transactions</span>
+        <div>
+            <a href="{% url 'finance:add_income' %}" class="btn btn-sm btn-success me-2">+ Add Income</a>
+            <a href="{% url 'finance:add_expense' %}" class="btn btn-sm btn-danger">+ Add Expense</a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table custom-table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Category / Source</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in summary.recent_transactions %}
+                <tr>
+                    <td>
+                        {% if tx.type == 'income' %}
+                            <span class="badge bg-success"><i class="fa-solid fa-arrow-down me-1"></i> Income</span>
+                        {% else %}
+                            <span class="badge bg-danger"><i class="fa-solid fa-arrow-up me-1"></i> Expense</span>
+                        {% endif %}
+                    </td>
+                    <td class="fw-semibold">
+                        {% if tx.type == 'income' %}{{ tx.source }}{% else %}{{ tx.category }}{% endif %}
+                    </td>
+                    <td>{{ tx.date|date:"Y-m-d" }}</td>
+                    <td class="text-secondary small">{{ tx.description|default:"-" }}</td>
+                    <td class="text-end fw-bold {% if tx.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                        {% if tx.type == 'income' %}+{% else %}-{% endif %}${{ tx.amount|floatformat:2 }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-secondary">No recent financial transactions found. Add your first income or expense!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const catData = {{ category_chart_json|safe }};
+        const monthlyData = {{ monthly_chart_json|safe }};
+        renderExpenseChart('dashboardExpenseChart', catData);
+        renderMonthlyChart('dashboardMonthlyChart', monthlyData);
+    });
+</script>
+{% endblock %}

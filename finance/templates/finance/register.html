@@ -1,0 +1,52 @@
+{% extends 'finance/base.html' %}
+
+{% block title %}Register - Personal Finance Analyzer{% endblock %}
+
+{% block guest_content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="form-card">
+            <h3 class="fw-bold text-center mb-4"><i class="fa-solid fa-user-plus text-primary me-2"></i> Create Account</h3>
+            <form method="post" action="{% url 'finance:register' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label font-weight-semibold">Full Name</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label font-weight-semibold">Email Address</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-semibold">Password</label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-semibold">Confirm Password</label>
+                        {{ form.confirm_password }}
+                        {% if form.confirm_password.errors %}
+                            <div class="text-danger small mt-1">{{ form.confirm_password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm mt-2">
+                    <i class="fa-solid fa-check-circle me-2"></i> Register Account
+                </button>
+            </form>
+            <div class="text-center mt-4 pt-3 border-top">
+                <p class="text-secondary small mb-0">Already registered? <a href="{% url 'finance:login' %}" class="fw-bold text-primary">Log In Here</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

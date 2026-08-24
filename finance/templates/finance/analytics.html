@@ -1,0 +1,92 @@
+{% extends 'finance/base.html' %}
+
+{% block title %}Spending Analytics - Personal Finance Analyzer{% endblock %}
+{% block page_title %}Spending Analytics & Insights{% endblock %}
+
+{% block content %}
+
+<!-- Pandas & NumPy Stat Insights -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-danger-subtle text-danger">
+                <i class="fa-solid fa-fire"></i>
+            </div>
+            <div class="stat-title">Highest Spending Category</div>
+            <div class="stat-value text-danger fs-4">{{ analytics.highest_category.category }}</div>
+            <span class="text-secondary small">${{ analytics.highest_category.amount|floatformat:2 }} total</span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-success-subtle text-success">
+                <i class="fa-solid fa-leaf"></i>
+            </div>
+            <div class="stat-title">Lowest Spending Category</div>
+            <div class="stat-value text-success fs-4">{{ analytics.lowest_category.category }}</div>
+            <span class="text-secondary small">${{ analytics.lowest_category.amount|floatformat:2 }} total</span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-primary-subtle text-primary">
+                <i class="fa-solid fa-calculator"></i>
+            </div>
+            <div class="stat-title">Avg Monthly Spending (NumPy)</div>
+            <div class="stat-value text-primary">${{ analytics.avg_monthly_spending|floatformat:2 }}</div>
+            <span class="text-secondary small">Mean monthly expenditure</span>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Chart.js Grid -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-white fw-bold border-0 pt-3">
+                <i class="fa-solid fa-chart-pie text-primary me-2"></i> Category Expense Breakdown
+            </div>
+            <div class="card-body" style="position: relative; height:320px;">
+                <canvas id="analyticsCategoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-white fw-bold border-0 pt-3">
+                <i class="fa-solid fa-chart-column text-success me-2"></i> Income vs Expense Comparison
+            </div>
+            <div class="card-body" style="position: relative; height:320px;">
+                <canvas id="analyticsMonthlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white fw-bold border-0 pt-3">
+                <i class="fa-solid fa-arrow-trend-up text-info me-2"></i> Cumulative Savings Trend Over Time
+            </div>
+            <div class="card-body" style="position: relative; height:320px;">
+                <canvas id="analyticsSavingsTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const catData = {{ category_chart_json|safe }};
+        const monthlyData = {{ monthly_chart_json|safe }};
+        const savingsData = {{ savings_trend_json|safe }};
+        
+        renderExpenseChart('analyticsCategoryChart', catData);
+        renderMonthlyChart('analyticsMonthlyChart', monthlyData);
+        renderSavingsTrendChart('analyticsSavingsTrendChart', savingsData);
+    });
+</script>
+{% endblock %}

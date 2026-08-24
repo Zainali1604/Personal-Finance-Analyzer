@@ -1,0 +1,35 @@
+{% extends 'finance/base.html' %}
+
+{% block title %}Welcome - Personal Finance Analyzer{% endblock %}
+
+{% block guest_content %}
+<div class="row align-items-center my-5">
+    <div class="col-lg-7">
+        <h1 class="display-4 fw-bold text-dark mb-3">Master Your Personal Finances Effortlessly</h1>
+        <p class="lead text-secondary mb-4">
+            Track income and expenses, set monthly category budgets, monitor savings goals, and visualize spending habits with interactive Pandas & Chart.js analytics.
+        </p>
+        <div class="d-flex gap-3">
+            <a href="{% url 'finance:register' %}" class="btn btn-primary btn-lg px-4 shadow-sm">
+                <i class="fa-solid fa-user-plus me-2"></i> Get Started Free
+            </a>
+            <a href="{% url 'finance:login' %}" class="btn btn-outline-secondary btn-lg px-4">
+                <i class="fa-solid fa-right-to-bracket me-2"></i> Log In
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-5 text-center mt-5 mt-lg-0">
+        <div class="auth-hero shadow-lg text-start">
+            <h4 class="fw-bold mb-3"><i class="fa-solid fa-shield-halved text-success me-2"></i> Features Included</h4>
+            <ul class="list-unstyled mb-0 d-flex flex-column gap-3 fs-6">
+                <li><i class="fa-solid fa-check text-primary me-2"></i> MongoDB Document Storage</li>
+                <li><i class="fa-solid fa-check text-primary me-2"></i> Income & Expense CRUD</li>
+                <li><i class="fa-solid fa-check text-primary me-2"></i> Monthly Budget Exceeded Alerts</li>
+                <li><i class="fa-solid fa-check text-primary me-2"></i> Savings Goal Progress Trackers</li>
+                <li><i class="fa-solid fa-check text-primary me-2"></i> Pandas & NumPy Spending Analytics</li>
+                <li><i class="fa-solid fa-check text-primary me-2"></i> Downloadable Monthly Reports (CSV/PDF)</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

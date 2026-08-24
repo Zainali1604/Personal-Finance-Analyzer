@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: personal-finance-analyzer
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        value: personal_finance_db

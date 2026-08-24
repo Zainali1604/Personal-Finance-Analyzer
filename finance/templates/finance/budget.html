@@ -1,0 +1,104 @@
+{% extends 'finance/base.html' %}
+
+{% block title %}Monthly Budget Planning - Personal Finance Analyzer{% endblock %}
+{% block page_title %}Monthly Budget Planning{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <!-- Set Budget Form Card -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white fw-bold border-0 pt-3">
+                <i class="fa-solid fa-plus-circle text-primary me-2"></i> Set Category Budget
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'finance:budget' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label font-weight-semibold">Month & Year</label>
+                        <div class="row g-2">
+                            <div class="col-6">{{ form.month }}</div>
+                            <div class="col-6">{{ form.year }}</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label font-weight-semibold">Expense Category</label>
+                        {{ form.category }}
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label font-weight-semibold">Monthly Limit Amount ($)</label>
+                        {{ form.limit_amount }}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Save Budget Limit
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Budget Analysis Table & Progress -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold m-0"><i class="fa-solid fa-chart-bar text-success me-2"></i> Budget vs Spending Overview</h6>
+                <span class="badge bg-primary fs-6">{{ analysis.month }}/{{ analysis.year }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row text-center mb-4 g-2">
+                    <div class="col-4">
+                        <div class="p-2 border rounded bg-light">
+                            <span class="text-secondary small d-block">Total Budget Limit</span>
+                            <span class="fw-bold fs-5 text-dark">${{ analysis.total_limit|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 border rounded bg-light">
+                            <span class="text-secondary small d-block">Total Spent</span>
+                            <span class="fw-bold fs-5 text-danger">${{ analysis.total_spent|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 border rounded bg-light">
+                            <span class="text-secondary small d-block">Total Remaining</span>
+                            <span class="fw-bold fs-5 text-success">${{ analysis.total_remaining|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if analysis.items %}
+                    {% for item in analysis.items %}
+                    <div class="mb-4 p-3 border rounded">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold fs-6">{{ item.category }}</span>
+                            <span>
+                                <strong>${{ item.spent_amount|floatformat:2 }}</strong> / ${{ item.limit_amount|floatformat:2 }}
+                                {% if item.is_exceeded %}
+                                    <span class="badge bg-danger ms-2">Exceeded by ${{ item.over_amount|floatformat:2 }}!</span>
+                                {% else %}
+                                    <span class="badge bg-success ms-2">${{ item.remaining_amount|floatformat:2 }} left</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-{{ item.status_class }}" role="progressbar" style="width: {{ item.percentage }}%;" aria-valuenow="{{ item.percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="text-secondary small">{{ item.percentage }}% spent</span>
+                            <a href="{% url 'finance:delete_budget' item.budget_id %}" class="text-danger small text-decoration-none" onclick="return confirm('Delete budget for {{ item.category }}?');">
+                                <i class="fa-solid fa-trash me-1"></i> Remove
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5 text-secondary">
+                        <i class="fa-solid fa-scale-balanced fa-2x mb-3 text-muted d-block"></i>
+                        No budgets created for this month yet. Use the form to set spending limits per category!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

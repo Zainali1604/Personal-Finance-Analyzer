@@ -1,0 +1,36 @@
+{% extends 'finance/base.html' %}
+
+{% block title %}Log In - Personal Finance Analyzer{% endblock %}
+
+{% block guest_content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="form-card">
+            <h3 class="fw-bold text-center mb-4"><i class="fa-solid fa-lock text-primary me-2"></i> User Login</h3>
+            <form method="post" action="{% url 'finance:login' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label font-weight-semibold">Email Address</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-4">
+                    <label class="form-label font-weight-semibold">Password</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                        <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
+                    <i class="fa-solid fa-right-to-bracket me-2"></i> Log In
+                </button>
+            </form>
+            <div class="text-center mt-4 pt-3 border-top">
+                <p class="text-secondary small mb-0">Don't have an account? <a href="{% url 'finance:register' %}" class="fw-bold text-primary">Register Here</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

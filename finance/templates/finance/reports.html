@@ -1,0 +1,157 @@
+{% extends 'finance/base.html' %}
+
+{% block title %}Monthly Financial Reports - Personal Finance Analyzer{% endblock %}
+{% block page_title %}Monthly Financial Reports{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4 g-3">
+    <div class="col-md-6">
+        <h4 class="fw-bold m-0">Monthly Financial Report</h4>
+        <p class="text-secondary small mb-0">Select a month to inspect transaction breakdowns and download exported reports.</p>
+    </div>
+    <div class="col-md-6">
+        <!-- Month & Year Filter Form -->
+        <form method="get" action="{% url 'finance:reports' %}" class="row g-2 justify-content-md-end">
+            <div class="col-auto">
+                <select name="month" class="form-select form-select-sm">
+                    <option value="1" {% if current_month == 1 %}selected{% endif %}>January</option>
+                    <option value="2" {% if current_month == 2 %}selected{% endif %}>February</option>
+                    <option value="3" {% if current_month == 3 %}selected{% endif %}>March</option>
+                    <option value="4" {% if current_month == 4 %}selected{% endif %}>April</option>
+                    <option value="5" {% if current_month == 5 %}selected{% endif %}>May</option>
+                    <option value="6" {% if current_month == 6 %}selected{% endif %}>June</option>
+                    <option value="7" {% if current_month == 7 %}selected{% endif %}>July</option>
+                    <option value="8" {% if current_month == 8 %}selected{% endif %}>August</option>
+                    <option value="9" {% if current_month == 9 %}selected{% endif %}>September</option>
+                    <option value="10" {% if current_month == 10 %}selected{% endif %}>October</option>
+                    <option value="11" {% if current_month == 11 %}selected{% endif %}>November</option>
+                    <option value="12" {% if current_month == 12 %}selected{% endif %}>December</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <input type="number" name="year" class="form-control form-control-sm" value="{{ current_year }}" min="2000" max="2100">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fa-solid fa-filter me-1"></i> View Report
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Report Download Action Bar -->
+<div class="card border-0 shadow-sm rounded-3 mb-4 bg-primary text-white">
+    <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-calendar-check me-2"></i> Report for {{ report.month_name }} {{ report.year }}</h5>
+            <span class="opacity-75">Generated summary of monthly income, expenditures, and budget status.</span>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'finance:download_report' 'csv' %}" class="btn btn-light text-primary font-weight-bold">
+                <i class="fa-solid fa-file-csv me-1"></i> Download CSV
+            </a>
+            <a href="{% url 'finance:download_report' 'pdf' %}" class="btn btn-dark text-white font-weight-bold">
+                <i class="fa-solid fa-file-pdf me-1"></i> Download PDF
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Metrics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="p-3 bg-white border rounded shadow-sm text-center">
+            <span class="text-secondary small d-block">Monthly Income</span>
+            <span class="fw-bold fs-4 text-success">${{ report.total_income|floatformat:2 }}</span>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="p-3 bg-white border rounded shadow-sm text-center">
+            <span class="text-secondary small d-block">Monthly Expenses</span>
+            <span class="fw-bold fs-4 text-danger">${{ report.total_expenses|floatformat:2 }}</span>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="p-3 bg-white border rounded shadow-sm text-center">
+            <span class="text-secondary small d-block">Net Savings</span>
+            <span class="fw-bold fs-4 {% if report.total_savings < 0 %}text-danger{% else %}text-primary{% endif %}">
+                ${{ report.total_savings|floatformat:2 }}
+            </span>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="p-3 bg-white border rounded shadow-sm text-center">
+            <span class="text-secondary small d-block">Total Transactions</span>
+            <span class="fw-bold fs-4 text-dark">{{ report.total_transactions }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Tables -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="custom-table-card">
+            <div class="p-3 bg-white fw-bold border-bottom text-success">
+                <i class="fa-solid fa-money-bill-trend-up me-2"></i> Income Breakdown
+            </div>
+            <div class="table-responsive">
+                <table class="table custom-table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Source</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inc in report.income_list %}
+                        <tr>
+                            <td>{{ inc.date|date:"Y-m-d" }}</td>
+                            <td>{{ inc.source }}</td>
+                            <td class="text-end fw-bold text-success">+${{ inc.amount|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-secondary">No income recorded for {{ report.month_name }} {{ report.year }}.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="custom-table-card">
+            <div class="p-3 bg-white fw-bold border-bottom text-danger">
+                <i class="fa-solid fa-receipt me-2"></i> Expense Breakdown
+            </div>
+            <div class="table-responsive">
+                <table class="table custom-table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for exp in report.expense_list %}
+                        <tr>
+                            <td>{{ exp.date|date:"Y-m-d" }}</td>
+                            <td>{{ exp.category }}</td>
+                            <td class="text-end fw-bold text-danger">-${{ exp.amount|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-secondary">No expenses recorded for {{ report.month_name }} {{ report.year }}.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
