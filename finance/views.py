@@ -47,7 +47,7 @@ def register_view(request):
             except ValueError as e:
                 messages.error(request, str(e))
             except Exception as e:
-                messages.error(request, f"Registration error: {e}")
+                messages.error(request, f"Database Connection Error: Ensure MONGO_URI is configured on Render. ({e})")
     else:
         form = RegistrationForm()
         
@@ -62,15 +62,18 @@ def login_view(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
-            user = FinanceService.authenticate_user(email, password)
-            if user:
-                request.session['user_id'] = user['_id']
-                request.session['user_name'] = user['name']
-                request.session['user_email'] = user['email']
-                messages.success(request, f"Welcome back, {user['name']}!")
-                return redirect('finance:dashboard')
-            else:
-                messages.error(request, "Invalid email address or password.")
+            try:
+                user = FinanceService.authenticate_user(email, password)
+                if user:
+                    request.session['user_id'] = user['_id']
+                    request.session['user_name'] = user['name']
+                    request.session['user_email'] = user['email']
+                    messages.success(request, f"Welcome back, {user['name']}!")
+                    return redirect('finance:dashboard')
+                else:
+                    messages.error(request, "Invalid email address or password. Note: Create a new account via Register if you haven't registered on the online server yet.")
+            except Exception as e:
+                messages.error(request, f"Database Connection Error: Could not connect to MongoDB Atlas. Ensure MONGO_URI is set in Render environment. ({e})")
     else:
         form = LoginForm()
         
@@ -87,24 +90,29 @@ def logout_view(request):
 def dashboard_view(request):
     user_id = request.session['user_id']
     
-    # High-level summary metrics
-    summary = AnalyticsService.get_dashboard_summary(user_id)
-    
-    # Monthly budget analysis
-    now = datetime.now()
-    budget_info = BudgetService.get_budget_analysis(user_id, now.month, now.year)
-    
-    # Analytics charts data for dashboard
-    analytics = AnalyticsService.get_spending_analytics(user_id)
-    
-    context = {
-        'summary': summary,
-        'budget_info': budget_info,
-        'analytics': analytics,
-        'category_chart_json': json.dumps(analytics['category_chart']),
-        'monthly_chart_json': json.dumps(analytics['monthly_chart'])
-    }
-    return render(request, 'finance/dashboard.html', context)
+    try:
+        summary = AnalyticsService.get_dashboard_summary(user_id)
+        now = datetime.now()
+        budget_info = BudgetService.get_budget_analysis(user_id, now.month, now.year)
+        analytics = AnalyticsService.get_spending_analytics(user_id)
+        
+        context = {
+            'summary': summary,
+            'budget_info': budget_info,
+            'analytics': analytics,
+            'category_chart_json': json.dumps(analytics['category_chart']),
+            'monthly_chart_json': json.dumps(analytics['monthly_chart'])
+        }
+        return render(request, 'finance/dashboard.html', context)
+    except Exception as e:
+        messages.error(request, f"Database Error: {e}")
+        return render(request, 'finance/dashboard.html', {
+            'summary': {'total_income': 0, 'total_expenses': 0, 'current_balance': 0, 'total_savings': 0, 'recent_transactions': []},
+            'budget_info': {'exceeded_count': 0},
+            'analytics': {'category_chart': {'labels': [], 'data': []}, 'monthly_chart': {'labels': [], 'income_data': [], 'expense_data': []}},
+            'category_chart_json': json.dumps({'labels': [], 'data': []}),
+            'monthly_chart_json': json.dumps({'labels': [], 'income_data': [], 'expense_data': []})
+        })
 
 # ------------------ INCOME VIEWS ------------------
 
@@ -368,7 +376,6 @@ def reports_view(request):
     
     report_data = ReportService.get_monthly_report_data(user_id, month, year)
     
-    # Save month & year in session for report download
     request.session['report_month'] = int(month)
     request.session['report_year'] = int(year)
     

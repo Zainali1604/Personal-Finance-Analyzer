@@ -12,8 +12,12 @@ DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
 
 ALLOWED_HOSTS = ['*']
 
+# Reverse proxy SSL header for Render HTTPS deployment
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com',
+    'https://*.loca.lt',
     'http://*.onrender.com',
     'http://localhost:8000',
     'http://127.0.0.1:8000'
